@@ -6,16 +6,14 @@ import { authMiddleware } from "../authMiddleware";
 const zapRouter = Router();
 const prismaClient = new PrismaClient();
 
-zapRouter.post('/create',authMiddleware,async (req, res) => {
-    console.log("zap create Route")
+zapRouter.post('/create', authMiddleware, async (req, res) => {
+
     const body = req.body;
     //@ts-ignore
     const id = req.id;
     const parsedData = ZapCreateSchema.safeParse(body);
 
-    console.log(parsedData)
-
-    if(!parsedData.success){
+    if (!parsedData.success) {
         res.status(411).json({
             message: "Incorrect inputs"
         });
@@ -25,11 +23,11 @@ zapRouter.post('/create',authMiddleware,async (req, res) => {
     const zapId = await prismaClient.$transaction(async tx => {
         const zap = await tx.zap.create({
             data: {
-                TriggerId:"",
+                TriggerId: "",
                 userId: parseInt(id),
                 actions: {
-                    
-                    create: parsedData.data.actions.map((x,index) => ({
+
+                    create: parsedData.data.actions.map((x, index) => ({
                         actionId: x.availableActionId,
                         sortingOrder: index,
                         metadata: x.actionMetadata
@@ -42,15 +40,15 @@ zapRouter.post('/create',authMiddleware,async (req, res) => {
         })
 
         const trigger = await tx.trigger.create({
-            data:{
+            data: {
                 TriggerId: parsedData.data.availableTriggerId,
                 zapId: zap.id
             }
         })
 
         await tx.zap.update({
-            where:{
-                id:zap.id
+            where: {
+                id: zap.id
             },
             data: {
                 TriggerId: trigger.id
@@ -64,27 +62,27 @@ zapRouter.post('/create',authMiddleware,async (req, res) => {
     return;
 
 })
-zapRouter.get('/allzap',authMiddleware,async (req, res) => {
-    console.log("get all zap Route")
+zapRouter.get('/allzap', authMiddleware, async (req, res) => {
+
     //@ts-ignore
     const id = req.id;
     const zaps = await prismaClient.zap.findMany({
-        where:{
+        where: {
             userId: id
         },
-        include:{
-            actions:{
-                include:{
-                    type:true
+        include: {
+            actions: {
+                include: {
+                    type: true
                 }
-            }, trigger:{
-                include:{
-                    type:true
+            }, trigger: {
+                include: {
+                    type: true
                 }
             }
         }
     })
-    console.log("zaps handler");
+
     res.json({
         zaps
     })
@@ -92,27 +90,27 @@ zapRouter.get('/allzap',authMiddleware,async (req, res) => {
 })
 
 zapRouter.get('/:zapId', authMiddleware, async (req, res) => {
-    console.log("get a zap Route")
+
     //@ts-ignore
     const id = req.id;
 
     const zapId = req.params.zapId;
 
     const zap = await prismaClient.zap.findFirst({
-        where:{
+        where: {
             id: zapId
         },
         include: {
-            actions:{
-                include:{
-                    type :true
+            actions: {
+                include: {
+                    type: true
                 }
-             },
-            trigger:{
-                include:{
-                    type:true
+            },
+            trigger: {
+                include: {
+                    type: true
                 }
-            } 
+            }
         }
     })
     res.json({

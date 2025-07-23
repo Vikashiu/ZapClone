@@ -1,6 +1,7 @@
 import { Router } from "express";
-
+import { PrismaClient } from "@prisma/client";
 const app = Router();
+const prisma = new PrismaClient();
 const { google } = require("googleapis");
 const { v4: uuidv4 } = require("uuid");
 
@@ -13,12 +14,29 @@ const oauth2Client = new google.auth.OAuth2(
 
 app.get("/", async (req, res) => {
   const { code } = req.query;
-  const userId ="";
+  const userId ="1";
   const zapId = "";
+  console.log(code);
 
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+
+    await prisma.googleCredentials.upsert({
+      where: { userId: userId as string },
+      update: {
+        accessToken: tokens.access_token!,
+        refreshToken: tokens.refresh_token!,
+        expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+      },
+      create: {
+        userId: userId as string,
+        accessToken: tokens.access_token!,
+        refreshToken: tokens.refresh_token ?? "",
+        expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+      },
+    });
+    console.log("✅ Credentials saved for user:", userId);
 
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
@@ -31,11 +49,6 @@ app.get("/", async (req, res) => {
         address: `https://c2c9-2409-40c4-10f9-e493-2964-a5e7-65a-fa39.ngrok-free.app/catch/${userId}/${zapId}`, // replace with your current ngrok URL
       },
     });
-
-    
-    
-
-    res.send("OAuth complete. Webhook and Sheets action registered.");
 
     res.send("OAuth complete. Webhook registered. Check console.");
     } catch (error) {

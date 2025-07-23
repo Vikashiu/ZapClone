@@ -5,7 +5,10 @@ import zapRouter from "./routes/zapRoutes";
 import { triggerRouter } from "./routes/triggerRoutes";
 import { actionRouter } from "./routes/actionRoutes";
 import { oauth2callbackRouter } from "./routes/oauth2callbackRouter";
+import { notionOauth } from "./routes/notionOauth";
+import { googleApiRoute } from "./routes/googleApiRoutes";
 const { google } = require("googleapis");
+
 require("dotenv").config();
 
 const app = express();
@@ -19,7 +22,10 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/zap", zapRouter);
 
 app.use("/api/v1/trigger", triggerRouter);
-app.use("/api/v1/action", actionRouter)
+app.use("/api/v1/action", actionRouter);
+
+app.use("/api/oauth/notion", notionOauth)
+app.use("/api/v1/google", googleApiRoute)
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
@@ -32,7 +38,8 @@ app.get("/auth", (req, res) => {
     access_type: "offline",
     scope: [
       "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/spreadsheets"
+      "https://www.googleapis.com/auth/spreadsheets",
+      'https://www.googleapis.com/auth/drive.readonly'
 
     ],
   });
@@ -41,6 +48,7 @@ app.get("/auth", (req, res) => {
 
 app.get("/oauth2callback", async (req, res) => {
   const { code } = req.query;
+  console.log(code);
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
 

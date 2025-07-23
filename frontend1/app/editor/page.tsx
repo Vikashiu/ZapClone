@@ -11,7 +11,7 @@ export default function () {
 
         {/* top bar */}
         <TopBar/>
-        <div className="flex w-screen  ">
+        <div className="flex w-screen ">
         
           {/* side bar */}
           <SideBar/>
@@ -28,3 +28,4 @@ export default function () {
     </div>
 
 }
+

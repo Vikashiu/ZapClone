@@ -1,6 +1,5 @@
 "use client";
 
-
 import {useState} from "react";
 
 import { BsLightningFill as ZapIcon } from "react-icons/bs";
@@ -14,7 +13,7 @@ export function SideBar() {
         setActivePanel((prev) => (prev === panelName ? null : panelName));
     }
 
-    return <div className="">
+    return <div className="h-full">
 
         {/* Sidebar */}
       <div className="w-13 h-160 border-b-gray-900 bg-gray-900 text-white flex flex-col items-center space-y-6 py-3">

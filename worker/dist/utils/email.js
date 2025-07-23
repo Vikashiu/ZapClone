@@ -16,8 +16,9 @@ exports.sendEmail = sendEmail;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config(); // Load .env if not already loaded globally
-function sendEmail() {
+function sendEmail(metadata) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(metadata);
         const transporter = nodemailer_1.default.createTransport({
             host: 'smtp.resend.com',
             secure: true,
@@ -28,10 +29,10 @@ function sendEmail() {
             },
         });
         const info = yield transporter.sendMail({
-            from: 'onboarding@resend.dev',
-            to: 'vikash.nemu6268@gmail.com',
+            from: process.env.RESEND_FROM,
+            to: metadata.email,
             subject: 'Hello World',
-            html: '<strong>It works!</strong>',
+            html: `<strong>${metadata.body}</strong>`,
         });
         console.log('Message sent: %s', info.messageId);
     });

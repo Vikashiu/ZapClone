@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import { sendEmail } from "./utils/email";
 import { setDefaultHighWaterMark } from "nodemailer/lib/xoauth2";
 import { appendRow } from "./utils/google_sheet";
+import {createCalendarEvent} from "./utils/google_calender";
+import { appendNotionRow } from "./utils/notion";
 
 const TOPIC_NAME = "zap-events"
 const prismaClient = new PrismaClient();
@@ -12,6 +14,8 @@ const kafka = new Kafka({
 });
 
 async function main(){
+
+    
 
     const producer = kafka.producer();
     await producer.connect();
@@ -54,9 +58,10 @@ async function main(){
                 }
             });
 
-            // console.log(zapRunDetails)
+            
             const currentAction = zapRunDetails?.zap.actions.find(x => x.sortingOrder === stage);
-            // console.log(currentAction)
+
+            console.log(currentAction)
             if(!currentAction){
                 console.log("Current action not found");
                 return;
@@ -64,15 +69,33 @@ async function main(){
 
             if(currentAction.type.id === "email"){
                 console.log("sending email");
+                console.log(currentAction.metadata)
+                if(currentAction.metadata != null) await sendEmail(currentAction.metadata as { email: string; body: string });
+                 
+            }
+            if(currentAction.type.id ==="Google Sheet"){
 
-                await sendEmail()
-                
-                
+                console.log("googlesheet");
+                await appendRow("1", currentAction.metadata);
+
             }
 
-            if(currentAction.type.id === "Solana"){
-                console.log("appending row")
-                // await appendRow()
+
+            if(currentAction.type.id === "Google Calender"){
+                console.log("📅 Creating Google Calendar event");
+                    
+                console.log("..................................")
+                console.log(currentAction.metadata);
+                await createCalendarEvent(
+                    "1",currentAction.metadata as {
+                        title:string,
+                        location:string,
+                        description:string,
+                        start:string,
+                        end:string
+                    }
+                    
+                );    
             }
 
             await new Promise(r => setTimeout(r, 1000));

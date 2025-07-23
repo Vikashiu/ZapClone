@@ -9,15 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.appendRow = appendRow;
+exports.createCalendarEvent = createCalendarEvent;
 const googleapis_1 = require("googleapis");
 const client_1 = require("@prisma/client");
 const prismaClient = new client_1.PrismaClient();
-function appendRow(userId, metadata) {
+function createCalendarEvent(userId, metadata) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("hi");
         const creds = yield prismaClient.googleCredentials.findFirst({ where: { userId } });
-        console.log(creds);
         if (!creds) {
             throw new Error("No Google credentials found for user.");
         }
@@ -26,17 +24,29 @@ function appendRow(userId, metadata) {
             access_token: creds.accessToken,
             refresh_token: creds.refreshToken,
         });
-        console.log("hi 1");
-        const sheets = googleapis_1.google.sheets({ version: "v4", auth: oauth2Client });
-        console.log(metadata);
-        yield sheets.spreadsheets.values.append({
-            spreadsheetId: metadata.spreadsheetId, // Make sure this is in your .env
-            range: metadata.sheetName,
-            valueInputOption: "USER_ENTERED",
+        const calendar = googleapis_1.google.calendar({ version: "v3", auth: oauth2Client });
+        // Add fallback duration of +30 mins if end == start
+        const startTime = new Date(metadata.start);
+        let endTime = new Date(metadata.end);
+        if (startTime.getTime() === endTime.getTime()) {
+            endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // +30 mins
+        }
+        yield calendar.events.insert({
+            calendarId: "primary",
             requestBody: {
-                values: [metadata.values],
+                summary: metadata.title,
+                description: metadata.description || "",
+                location: metadata.location || "",
+                start: {
+                    dateTime: startTime.toISOString(),
+                    timeZone: "Asia/Kolkata",
+                },
+                end: {
+                    dateTime: endTime.toISOString(),
+                    timeZone: "Asia/Kolkata",
+                },
             },
         });
-        console.log("✅ Row appended");
+        console.log("📅 Calendar event created!");
     });
 }

@@ -19,12 +19,8 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../types/config");
 const authMiddleware_1 = require("../authMiddleware");
 const userRouter = (0, express_1.Router)();
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6eyJpZCI6MSwibmFtZSI6InZpa1MiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicGFzc3dvcmQiOiIxMjM0In0sImlhdCI6MTc1MTQ1OTQ0Mn0.Uz_Ia4eo9S-FDlwOGlHAwC18s99S-pBKxq_MWOnIQpo
 userRouter.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("signup Route");
     const body = req.body;
-    console.log("hi");
-    console.log(body);
     const parsedData = types_1.SignupData.safeParse(body);
     if (!parsedData.success) {
         return res.status(411).json({
@@ -57,7 +53,6 @@ userRouter.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, funct
     });
 }));
 userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("signin Route");
     const body = req.body;
     const parsedData = types_1.SigninData.safeParse(body);
     if (!parsedData.success) {
@@ -77,7 +72,6 @@ userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, funct
             message: "sorry credential are incorrect"
         });
     }
-    // else return the token
     const id = user === null || user === void 0 ? void 0 : user.id;
     const token = jsonwebtoken_1.default.sign({ id }, config_1.JWT_PASSWORD);
     res.json({
@@ -85,7 +79,6 @@ userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, funct
     });
 }));
 userRouter.get('/', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("get user Route");
     //@ts-ignore
     const id = req.id;
     const user = yield db_1.prismaClient.user.findFirst({

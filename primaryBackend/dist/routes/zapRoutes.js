@@ -16,12 +16,10 @@ const authMiddleware_1 = require("../authMiddleware");
 const zapRouter = (0, express_1.Router)();
 const prismaClient = new client_1.PrismaClient();
 zapRouter.post('/create', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("zap create Route");
     const body = req.body;
     //@ts-ignore
     const id = req.id;
     const parsedData = types_1.ZapCreateSchema.safeParse(body);
-    console.log(parsedData);
     if (!parsedData.success) {
         res.status(411).json({
             message: "Incorrect inputs"
@@ -64,7 +62,6 @@ zapRouter.post('/create', authMiddleware_1.authMiddleware, (req, res) => __await
     return;
 }));
 zapRouter.get('/allzap', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("get all zap Route");
     //@ts-ignore
     const id = req.id;
     const zaps = yield prismaClient.zap.findMany({
@@ -83,14 +80,12 @@ zapRouter.get('/allzap', authMiddleware_1.authMiddleware, (req, res) => __awaite
             }
         }
     });
-    console.log("zaps handler");
     res.json({
         zaps
     });
     console.log(zaps);
 }));
 zapRouter.get('/:zapId', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("get a zap Route");
     //@ts-ignore
     const id = req.id;
     const zapId = req.params.zapId;

@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 dotenv.config(); // Load .env if not already loaded globally
 
 
-export async function sendEmail() {
+export async function sendEmail(metadata: { email: string; body: string }) {
+  console.log(metadata);
   const transporter = nodemailer.createTransport({
     host: 'smtp.resend.com',
     secure: true,
@@ -16,10 +17,11 @@ export async function sendEmail() {
   });
 
   const info = await transporter.sendMail({
+    
     from: process.env.RESEND_FROM,
-    to: '',
+    to: metadata.email,
     subject: 'Hello World',
-    html: '<strong>It works!</strong>',
+    html: `<strong>${metadata.body}</strong>`,
   });
 
   console.log('Message sent: %s', info.messageId);

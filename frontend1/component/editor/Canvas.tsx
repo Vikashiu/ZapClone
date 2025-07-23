@@ -3,6 +3,11 @@ import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-rea
 import { PrimaryButton } from "../buttons/PrimaryButton";
 import { BACKEND_URL } from "@/app/config";
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import canvasNavbar from "./canvasNavbar";
+
+
+
+
 import {
   ReactFlow,
   addEdge,
@@ -293,8 +298,19 @@ export function Canvas() {
 
 
   return (
-    <div className="bg-gray-100" style={{ width: "100%", height: '100vh' }}>
-      <Button onClick={handlePublish}>Publish</Button>
+    <div className="bg-gray-100" style={{ width: "100%", height: '85vh' }}>
+      
+        
+        
+
+        <div className="flex justify-end items-center space-x-2 bg-[#fffdfa] w-full p-1">
+            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Undo</button>
+            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Test run</button>
+            <Button onClick={handlePublish}>Publish</Button>
+        </div>
+        
+      
+      
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -373,6 +389,8 @@ export function Canvas() {
           <div>
             {selectedAction?.name === "email" && <EmailSelector setMetadata={updateNodeMetadata} />}
             {selectedAction?.name === "Solana" && <SolanaSelector setMetadata={updateNodeMetadata} />}
+            {selectedAction?.name === "Google Calender" && <GoogleCalendarSelector setMetadata={updateNodeMetadata} />}
+            {selectedAction?.name === "Google Sheet" && <GoogleSheetSelector setMetadata={updateNodeMetadata} />}
           </div>
         </div>
       </Modal>
@@ -433,5 +451,319 @@ function SolanaSelector({setMetadata}: {
         }}>Submit</PrimaryButton>
         </div>
     </div>
+}
+
+
+type CalendarEventMetadata = {
+  title: string;
+  description: string;
+  location: string;
+  start: string;
+  end: string;
+};
+
+function GoogleCalendarSelector({
+  setMetadata,
+}: {
+  setMetadata: (params: CalendarEventMetadata) => void;
+}) {
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+
+  const getOffset = () => {
+    const offset = new Date().getTimezoneOffset(); // in minutes
+    const absOffset = Math.abs(offset);
+    const hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+    const minutes = String(absOffset % 60).padStart(2, "0");
+    const sign = offset <= 0 ? "+" : "-";
+    return `${sign}${hours}:${minutes}`;
+  };
+
+  const handleSubmit = () => {
+    if (!start || !end || !title) {
+      alert("Please fill in the title, start time, and end time.");
+      return;
+    }
+
+    const offset = getOffset(); // e.g., "+05:30"
+    const startWithOffset = `${start}${offset}`;
+    const endWithOffset = `${end}${offset}`;
+
+    const metadata: CalendarEventMetadata = {
+      title,
+      location,
+      description,
+      start: startWithOffset,
+      end: endWithOffset,
+    };
+
+    console.log("✅ Metadata to save:", metadata);
+    setMetadata(metadata);
+    alert("Configuration saved!");
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md border border-gray-200">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Configure Google Calendar Event
+        </h3>
+
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            Title *
+          </label>
+          <input
+            id="title"
+            type="text"
+            placeholder="Meeting with the team"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+            Location
+          </label>
+          <input
+            id="location"
+            type="text"
+            placeholder="e.g., Google Meet"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            id="description"
+            placeholder="Discussing Q3 roadmap..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="start" className="block text-sm font-medium text-gray-700 mb-1">
+              Start Time *
+            </label>
+            <input
+              id="start"
+              type="datetime-local"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="end" className="block text-sm font-medium text-gray-700 mb-1">
+              End Time *
+            </label>
+            <input
+              id="end"
+              type="datetime-local"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="pt-2">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 text-white font-semibold px-4 py-2.5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+          >
+            Save Configuration
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
+const RefreshCwIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>;
+const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>;
+
+interface Sheet { id: string; name: string; }
+// interface SelectorProps { onSave: (metadata: any) => {} }
+
+interface CustomDropdownProps {
+    label: string;
+    placeholder: string;
+    options: string[];
+    onSelect: (value: string) => void;
+    selectedValue: string | null | undefined;
+    isLoading: boolean;
+}
+
+const CustomDropdown = ({ label, placeholder, options, onSelect, selectedValue, isLoading }: CustomDropdownProps) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const displayValue = selectedValue || placeholder;
+
+    return (
+        <div className="relative mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">{label} *</label>
+            <button onClick={() => setIsOpen(!isOpen)} disabled={isLoading || !options.length} className="w-full flex justify-between items-center bg-white border border-gray-300 rounded-md px-3 py-2 text-left text-gray-800 disabled:bg-gray-100">
+                <span>{isLoading ? "Loading..." : displayValue}</span>
+                <ChevronDownIcon />
+            </button>
+            {isOpen && (
+                <div className="absolute z-10 top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-xl">
+                    <ul className="py-1 max-h-60 overflow-y-auto">
+                        {options.map((option: string) => (
+                            <li key={option} onClick={() => { onSelect(option); setIsOpen(false); }} className="px-4 py-2 text-sm text-gray-800 hover:bg-blue-50 cursor-pointer">{option}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+function GoogleSheetSelector({ setMetadata }: {
+  setMetadata: (params:any) => void;
+}) {
+    const [spreadsheets, setSpreadsheets] = useState<Sheet[]>([]);
+    const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<Sheet | null>(null);
+    
+    const [worksheets, setWorksheets] = useState<string[]>([]);
+    const [selectedWorksheet, setSelectedWorksheet] = useState<string | null>(null);
+
+    const [columns, setColumns] = useState<string[]>([]);
+    const [columnValues, setColumnValues] = useState<Record<string, string>>({});
+
+    const [loading, setLoading] = useState({ spreadsheets: false, worksheets: false, columns: false });
+
+    useEffect(() => {
+        setLoading(prev => ({ ...prev, spreadsheets: true }));
+        axios.get<any>('http://localhost:3000/api/v1/google/sheets', { headers: { "authorization": localStorage.getItem("token") } })
+            .then(res => setSpreadsheets(res.data.sheets))
+            .catch(err => console.error("Failed to fetch spreadsheets:", err))
+            .then(() => {
+                setLoading(prev => ({ ...prev, spreadsheets: false }));
+            });
+    }, []);
+
+    useEffect(() => {
+        if (selectedSpreadsheet) {
+            setWorksheets([]);
+            setSelectedWorksheet(null);
+            setColumns([]);
+            setColumnValues({});
+            setLoading(prev => ({ ...prev, worksheets: true }));
+            axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets`, { headers: { "authorization": localStorage.getItem("token") } })
+                .then(res => setWorksheets(res.data.worksheets))
+                .catch(err => console.error("Failed to fetch worksheets:", err))
+                .then(() => {
+                    setLoading(prev => ({ ...prev, worksheets: false }));
+                });
+        }
+    }, [selectedSpreadsheet]);
+
+    useEffect(() => {
+        if (selectedSpreadsheet && selectedWorksheet) {
+            setColumns([]);
+            setColumnValues({});
+            setLoading(prev => ({ ...prev, columns: true }));
+            axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets/${encodeURIComponent(selectedWorksheet)}/columns`, { headers: { "authorization": localStorage.getItem("token") } })
+                .then(res => setColumns(res.data.columns))
+                .catch(err => console.error("Failed to fetch columns:", err))
+                .then(() => {
+                    setLoading(prev => ({ ...prev, columns: false }));
+                });
+        }
+    }, [selectedSpreadsheet, selectedWorksheet]);
+
+    const handleColumnChange = (column: string, value: string) => {
+        setColumnValues(prev => ({ ...prev, [column]: value }));
+    };
+
+    const handleSave = () => {
+        // const metadata = {
+        //     spreadsheetId: selectedSpreadsheet?.id,
+        //     sheetName: selectedWorksheet,
+        //     values: columns.map(col => columnValues[col] || "")
+        // };
+        setMetadata({
+          spreadsheetId: selectedSpreadsheet?.id,
+          sheetName: selectedWorksheet,
+          values: columns.map(col => columnValues[col] || "")
+        })
+        alert("Configuration saved!");
+    };
+
+    return (
+        <div className="p-4">
+            <CustomDropdown
+                label="Spreadsheet"
+                placeholder="Select a spreadsheet"
+                options={spreadsheets.map(s => s.name)}
+                selectedValue={selectedSpreadsheet?.name}
+                onSelect={(name: string) => setSelectedSpreadsheet(spreadsheets.find(s => s.name === name) || null)}
+                isLoading={loading.spreadsheets}
+            />
+
+            {selectedSpreadsheet && (
+                <CustomDropdown
+                    label="Worksheet"
+                    placeholder="Select a worksheet"
+                    options={worksheets}
+                    selectedValue={selectedWorksheet}
+                    onSelect={setSelectedWorksheet}
+                    isLoading={loading.worksheets}
+                />
+            )}
+
+            {selectedWorksheet && loading.columns && <p className="text-sm text-gray-500">Loading columns...</p>}
+            {columns.length > 0 && (
+                <div className="mt-4 border-t pt-4">
+                    <h4 className="font-semibold mb-2 text-gray-800">Map Columns</h4>
+                    <div className="space-y-3">
+                        {columns.map(col => (
+                            <div key={col}>
+                                <label className="block text-sm font-medium text-gray-700">{col}</label>
+                                <input
+                                    type="text"
+                                    placeholder={`Value for ${col}`}
+                                    onChange={(e) => handleColumnChange(col, e.target.value)}
+                                    className="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
+            <div className="pt-4 mt-4 border-t">
+                <button
+                    onClick={handleSave}
+                    disabled={!selectedWorksheet || columns.length === 0}
+                    className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    );
 }
 

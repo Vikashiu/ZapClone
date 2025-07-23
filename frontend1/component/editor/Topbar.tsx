@@ -27,13 +27,10 @@ export function TopBar() {
             <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Draft</span>
           </div>
 
-            {/* Buttons */}
-          <div className="flex items-center space-x-2">
-            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Undo</button>
-            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Test run</button>
-            <button className="text-sm px-3 py-1 bg-blue-600 text-white rounded">Publish</button>
+          
+          <div>
+            Help
           </div>
-
 
         </div>
     </div>

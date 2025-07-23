@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const kafkajs_1 = require("kafkajs");
 const client_1 = require("@prisma/client");
 const email_1 = require("./utils/email");
+const google_sheet_1 = require("./utils/google_sheet");
+const google_calender_1 = require("./utils/google_calender");
 const TOPIC_NAME = "zap-events";
 const prismaClient = new client_1.PrismaClient();
 const kafka = new kafkajs_1.Kafka({
@@ -58,20 +60,27 @@ function main() {
                         }
                     }
                 });
-                // console.log(zapRunDetails)
                 const currentAction = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.actions.find(x => x.sortingOrder === stage);
-                // console.log(currentAction)
+                console.log(currentAction);
                 if (!currentAction) {
                     console.log("Current action not found");
                     return;
                 }
                 if (currentAction.type.id === "email") {
                     console.log("sending email");
-                    yield (0, email_1.sendEmail)();
+                    console.log(currentAction.metadata);
+                    if (currentAction.metadata != null)
+                        yield (0, email_1.sendEmail)(currentAction.metadata);
                 }
-                if (currentAction.type.id === "Solana") {
-                    console.log("appending row");
-                    // await appendRow()
+                if (currentAction.type.id === "Google Sheet") {
+                    console.log("googlesheet");
+                    yield (0, google_sheet_1.appendRow)("1", currentAction.metadata);
+                }
+                if (currentAction.type.id === "Google Calender") {
+                    console.log("📅 Creating Google Calendar event");
+                    console.log("..................................");
+                    console.log(currentAction.metadata);
+                    yield (0, google_calender_1.createCalendarEvent)("1", currentAction.metadata);
                 }
                 yield new Promise(r => setTimeout(r, 1000));
                 const zapId = (_e = message.value) === null || _e === void 0 ? void 0 : _e.toString();

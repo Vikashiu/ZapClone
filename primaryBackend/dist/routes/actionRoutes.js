@@ -14,11 +14,9 @@ const express_1 = require("express");
 const db_1 = require("../db");
 const router = (0, express_1.Router)();
 router.get("/available", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("1 reached");
     const availableActions = yield db_1.prismaClient.availableAction.findMany({});
     res.json({
         availableActions
     });
-    console.log("res sended");
 }));
 exports.actionRouter = router;

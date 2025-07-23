@@ -1,35 +1,38 @@
 import { google } from "googleapis";
-import dotenv from "dotenv"
+import { PrismaClient } from "@prisma/client";
+const prismaClient = new PrismaClient();
+export async function appendRow(userId : string,metadata: any) {
+  console.log("hi");
+  const creds = await prismaClient.googleCredentials.findFirst({ where: { userId } });
+  console.log(creds);
+  
+  if (!creds) {
+    throw new Error("No Google credentials found for user.");
+  }
 
-dotenv.config();
-// import { sendEmail } from "../utils/email"; // from resend
-// import { PrismaClient } from "@prisma/client";
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    process.env.REDIRECT_URI
+  );
 
-// const client = new PrismaClient();
-const oauth2Client = new google.auth.OAuth2(
-  process.env.CLIENT_ID,
-  process.env.CLIENT_SECRET,
-  process.env.REDIRECT_URI
-);
-
-oauth2Client.setCredentials({
-  access_token: process.env.GOOGLE_ACCESS_TOKEN,
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-});
-
-export async function appendRow() {
-    console.log("at append row")
+  oauth2Client.setCredentials({
+    access_token: creds.accessToken,
+    refresh_token: creds.refreshToken,
+  });
+  console.log("hi 1");
   const sheets = google.sheets({ version: "v4", auth: oauth2Client });
+  console.log(metadata);
+
   await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.SHEET_ID,
-    range: "Sheet1!A1",
+    spreadsheetId: metadata.spreadsheetId, // Make sure this is in your .env
+    range: metadata.sheetName,
     valueInputOption: "USER_ENTERED",
     requestBody: {
-      values: [["Zap Triggered", new Date().toISOString()]],
+      values: [metadata.values],
     },
   });
 
-  
-
-  console.log("✅ Zap processed:");
+  console.log("✅ Row appended");
 }
+
