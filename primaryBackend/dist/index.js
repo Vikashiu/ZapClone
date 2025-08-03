@@ -44,7 +44,7 @@ app.get("/auth", (req, res) => {
             'https://www.googleapis.com/auth/drive.readonly'
         ],
     });
-    res.redirect(url);
+    res.json({ url });
 });
 app.get("/oauth2callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
