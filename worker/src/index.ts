@@ -76,7 +76,7 @@ async function main(){
             if(currentAction.type.id ==="Google Sheet"){
 
                 console.log("googlesheet");
-                await appendRow("1", currentAction.metadata);
+                // await appendRow("1", currentAction.metadata);
 
             }
 

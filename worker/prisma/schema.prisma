@@ -88,3 +88,13 @@ model GoogleCredentials {
   updatedAt    DateTime @updatedAt
 }
 
+model NotionCredential {
+  id             String   @id @default(cuid())
+  accessToken    String
+  botId          String
+  workspaceId    String
+  workspaceName  String?
+  userId         String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

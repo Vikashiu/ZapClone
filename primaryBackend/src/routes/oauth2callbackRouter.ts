@@ -21,7 +21,7 @@ app.get("/", async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
-
+    console.log(tokens);
     await prisma.googleCredentials.upsert({
       where: { userId: userId as string },
       update: {
@@ -32,7 +32,7 @@ app.get("/", async (req, res) => {
       create: {
         userId: userId as string,
         accessToken: tokens.access_token!,
-        refreshToken: tokens.refresh_token ?? "",
+        refreshToken: tokens.refresh_token,
         expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
       },
     });

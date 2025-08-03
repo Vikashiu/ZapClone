@@ -629,7 +629,7 @@ function GoogleSheetSelector({ setMetadata }: {
 
   useEffect(() => {
     setLoading(prev => ({ ...prev, spreadsheets: true }));
-    axios.get<any>('http://localhost:3000/api/v1/google/sheets', { headers: { "authorization": localStorage.getItem("token") } })
+    axios.get<any>(`${BACKEND_URL}/api/v1/google/sheets`, { headers: { "authorization": localStorage.getItem("token") } })
       .then(res => setSpreadsheets(res.data.sheets))
       .catch(err => console.error("Failed to fetch spreadsheets:", err))
       .then(() => {
@@ -644,7 +644,7 @@ function GoogleSheetSelector({ setMetadata }: {
       setColumns([]);
       setColumnValues({});
       setLoading(prev => ({ ...prev, worksheets: true }));
-      axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets`, { headers: { "authorization": localStorage.getItem("token") } })
+      axios.get<any>(`${BACKEND_URL}/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets`, { headers: { "authorization": localStorage.getItem("token") } })
         .then(res => setWorksheets(res.data.worksheets))
         .catch(err => console.error("Failed to fetch worksheets:", err))
         .then(() => {
@@ -658,7 +658,7 @@ function GoogleSheetSelector({ setMetadata }: {
       setColumns([]);
       setColumnValues({});
       setLoading(prev => ({ ...prev, columns: true }));
-      axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets/${encodeURIComponent(selectedWorksheet)}/columns`, { headers: { "authorization": localStorage.getItem("token") } })
+      axios.get<any>(`${BACKEND_URL}/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets/${encodeURIComponent(selectedWorksheet)}/columns`, { headers: { "authorization": localStorage.getItem("token") } })
         .then(res => setColumns(res.data.columns))
         .catch(err => console.error("Failed to fetch columns:", err))
         .then(() => {
