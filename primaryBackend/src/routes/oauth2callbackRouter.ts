@@ -19,7 +19,7 @@ app.get("/" ,async (req, res) => {
   const { code, state } = req.query;
 
   const { userId } = JSON.parse(state as string);
-  
+  const userIdStr = String(userId);
   // console.log(code);
 
   try {
@@ -28,14 +28,14 @@ app.get("/" ,async (req, res) => {
     console.log("hi");
     console.log(tokens);
     await prisma.googleCredentials.upsert({
-      where: { userId: userId as string },
+      where: { userId: userIdStr },
       update: {
         accessToken: tokens.access_token!,
         refreshToken: tokens.refresh_token!,
         expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
       },
       create: {
-        userId: userId as string,
+        userId: userIdStr,
         accessToken: tokens.access_token!,
         refreshToken: tokens.refresh_token!,
         expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
