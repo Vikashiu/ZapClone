@@ -23,6 +23,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // const userId = "";
     const { code, state } = req.query;
     const { userId } = JSON.parse(state);
+    const userIdStr = String(userId);
     // console.log(code);
     try {
         const { tokens } = yield oauth2Client.getToken(code);
@@ -30,14 +31,14 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("hi");
         console.log(tokens);
         yield prisma.googleCredentials.upsert({
-            where: { userId: userId },
+            where: { userId: userIdStr },
             update: {
                 accessToken: tokens.access_token,
                 refreshToken: tokens.refresh_token,
                 expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
             },
             create: {
-                userId: userId,
+                userId: userIdStr,
                 accessToken: tokens.access_token,
                 refreshToken: tokens.refresh_token,
                 expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
