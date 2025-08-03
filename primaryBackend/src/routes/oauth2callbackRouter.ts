@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
+import { authMiddleware } from "../authMiddleware";
 const app = Router();
 const prisma = new PrismaClient();
 const { google } = require("googleapis");
@@ -12,10 +13,11 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.REDIRECT_URI
 );
 
-app.get("/", async (req, res) => {
+app.get("/", authMiddleware ,async (req, res) => {
   const { code } = req.query;
-  const userId ="1";
-  const zapId = "";
+  // @ts-ignore
+  const userId = req.id;
+  
   // console.log(code);
 
   try {
