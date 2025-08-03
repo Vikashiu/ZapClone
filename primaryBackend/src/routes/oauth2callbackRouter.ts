@@ -21,6 +21,7 @@ app.get("/", async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+    console.log("hi")
     console.log(tokens);
     await prisma.googleCredentials.upsert({
       where: { userId: userId as string },
