@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const kafkajs_1 = require("kafkajs");
 const client_1 = require("@prisma/client");
 const email_1 = require("./utils/email");
+const google_sheet_1 = require("./utils/google_sheet");
 const google_calender_1 = require("./utils/google_calender");
 const TOPIC_NAME = "zap-events";
 const prismaClient = new client_1.PrismaClient();
@@ -73,7 +74,7 @@ function main() {
                 }
                 if (currentAction.type.id === "Google Sheet") {
                     console.log("googlesheet");
-                    // await appendRow("1", currentAction.metadata);
+                    yield (0, google_sheet_1.appendRow)("1", currentAction.metadata);
                 }
                 if (currentAction.type.id === "Google Calender") {
                     console.log("📅 Creating Google Calendar event");
