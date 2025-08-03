@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -21,6 +12,7 @@ const actionRoutes_1 = require("./routes/actionRoutes");
 const oauth2callbackRouter_1 = require("./routes/oauth2callbackRouter");
 const notionOauth_1 = require("./routes/notionOauth");
 const googleApiRoutes_1 = require("./routes/googleApiRoutes");
+const authMiddleware_1 = require("./authMiddleware");
 const { google } = require("googleapis");
 require("dotenv").config();
 const app = (0, express_1.default)();
@@ -34,7 +26,9 @@ app.use("/api/v1/action", actionRoutes_1.actionRouter);
 app.use("/api/oauth/notion", notionOauth_1.notionOauth);
 app.use("/api/v1/google", googleApiRoutes_1.googleApiRoute);
 const oauth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI);
-app.get("/auth", (req, res) => {
+app.get("/auth", authMiddleware_1.authMiddleware, (req, res) => {
+    // @ts-ignore
+    const userId = req.id;
     const url = oauth2Client.generateAuthUrl({
         access_type: "offline",
         prompt: 'consent',
@@ -43,23 +37,24 @@ app.get("/auth", (req, res) => {
             "https://www.googleapis.com/auth/spreadsheets",
             'https://www.googleapis.com/auth/drive.readonly'
         ],
+        state: JSON.stringify({ userId }),
     });
     res.json({ url });
 });
-app.get("/oauth2callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { code } = req.query;
-    console.log(code);
-    const { tokens } = yield oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    // Save these tokens somewhere securely
-    console.log("Tokens:", tokens);
-    res.send("OAuth complete. Check server console.");
-}));
-app.post("/webhook", express_1.default.json(), (req, res) => {
-    console.log("📨 Google sent a notification!");
-    console.log("Headers:", req.headers);
-    res.sendStatus(200);
-});
+// app.get("/oauth2callback", async (req, res) => {
+//   const { code } = req.query;
+//   console.log(code);
+//   const { tokens } = await oauth2Client.getToken(code);
+//   oauth2Client.setCredentials(tokens);
+//   // Save these tokens somewhere securely
+//   console.log("Tokens:", tokens);
+//   res.send("OAuth complete. Check server console.");
+// });
+// app.post("/webhook", express.json(), (req, res) => {
+//   console.log("📨 Google sent a notification!");
+//   console.log("Headers:", req.headers);
+//   res.sendStatus(200);
+// });
 app.listen(3000, () => {
     console.log("listening at 3000");
 });

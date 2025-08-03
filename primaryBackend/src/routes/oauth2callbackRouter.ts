@@ -13,10 +13,12 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.REDIRECT_URI
 );
 
-app.get("/", authMiddleware ,async (req, res) => {
-  const { code } = req.query;
-  // @ts-ignore
-  const userId = req.id;
+app.get("/" ,async (req, res) => {
+  // const { code } = req.query;
+  // const userId = "";
+  const { code, state } = req.query;
+
+  const { userId } = JSON.parse(state as string);
   
   // console.log(code);
 

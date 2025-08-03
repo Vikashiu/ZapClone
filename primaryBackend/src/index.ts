@@ -7,6 +7,7 @@ import { actionRouter } from "./routes/actionRoutes";
 import { oauth2callbackRouter } from "./routes/oauth2callbackRouter";
 import { notionOauth } from "./routes/notionOauth";
 import { googleApiRoute } from "./routes/googleApiRoutes";
+import { authMiddleware } from "./authMiddleware";
 const { google } = require("googleapis");
 
 require("dotenv").config();
@@ -33,7 +34,9 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.REDIRECT_URI
 );
 
-app.get("/auth", (req, res) => {
+app.get("/auth",authMiddleware, (req, res) => {
+  // @ts-ignore
+  const userId = req.id;
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: 'consent',
@@ -43,27 +46,28 @@ app.get("/auth", (req, res) => {
       'https://www.googleapis.com/auth/drive.readonly'
 
     ],
+    state: JSON.stringify({ userId }),
   });
   res.json({url});
 });
 
-app.get("/oauth2callback", async (req, res) => {
-  const { code } = req.query;
-  console.log(code);
-  const { tokens } = await oauth2Client.getToken(code);
-  oauth2Client.setCredentials(tokens);
+// app.get("/oauth2callback", async (req, res) => {
+//   const { code } = req.query;
+//   console.log(code);
+//   const { tokens } = await oauth2Client.getToken(code);
+//   oauth2Client.setCredentials(tokens);
 
-  // Save these tokens somewhere securely
-  console.log("Tokens:", tokens);
+//   // Save these tokens somewhere securely
+//   console.log("Tokens:", tokens);
 
-  res.send("OAuth complete. Check server console.");
-});
+//   res.send("OAuth complete. Check server console.");
+// });
 
-app.post("/webhook", express.json(), (req, res) => {
-  console.log("📨 Google sent a notification!");
-  console.log("Headers:", req.headers);
-  res.sendStatus(200);
-});
+// app.post("/webhook", express.json(), (req, res) => {
+//   console.log("📨 Google sent a notification!");
+//   console.log("Headers:", req.headers);
+//   res.sendStatus(200);
+// });
 
 
 
