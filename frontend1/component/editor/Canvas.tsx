@@ -4,10 +4,9 @@ import { PrimaryButton } from "../buttons/PrimaryButton";
 import { BACKEND_URL } from "@/app/config";
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import canvasNavbar from "./canvasNavbar";
-
-
-
-
+import { useRouter } from "next/navigation";
+import { TopBar } from "./Topbar";
+import type { Trigger, Action, TriggerResponse, ActionResponse } from "@/type/editorsType";
 import {
   ReactFlow,
   addEdge,
@@ -31,6 +30,7 @@ import '@xyflow/react/dist/style.css';
 
 import { useReactFlow } from "@xyflow/react";
 import axios from "axios";
+import Topbar from "../dashboard/Topbar";
 
 
 const nodeOrigin: [number, number] = [0.5, 0];
@@ -40,7 +40,7 @@ const initialNodes: Node[] = [
   {
     id: "1",
     type: "input",
-    data: { label: "1. Trigger Node", metadata:{} },
+    data: { label: "1. Trigger Node", metadata: {} },
     position: { x: 250, y: 50 },
     deletable: false,
   },
@@ -51,27 +51,6 @@ const initialEdges: Edge[] = [
 
 ];
 
-type Trigger = {
-  id: string;
-  name: string;
-  image: string;
-  metadata?:any
-};
-
-type Action = {
-  id: string;
-  name: string;
-  image: string;
-  metadata?:any
-};
-
-type TriggerResponse = {
-  availableTriggers: Trigger[];
-};
-
-type ActionResponse = {
-  availableActions: Action[];
-};
 
 function useAvailableActionsAndTriggers() {
   const [availableActions, setAvailableActions] = useState<Action[]>([]);
@@ -98,11 +77,12 @@ function useAvailableActionsAndTriggers() {
 
 
 export function Canvas() {
+  const router = useRouter();
   const reactFlowWrapper = useRef(null);
 
   const { availableActions, availableTriggers } = useAvailableActionsAndTriggers();
   const { getNode } = useReactFlow();
- 
+
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -236,17 +216,17 @@ export function Canvas() {
   }
 
   const updateNodeMetadata = (metadata: any) => {
-  setNodes((prevNodes) =>
-    prevNodes.map((node) =>
-      node.id === nodeId
-        ? {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === nodeId
+          ? {
             ...node,
             data: {
               ...node.data,
               metadata,
             },
           }
-        : node
+          : node
       )
     );
     setSecondModal(false);
@@ -255,40 +235,41 @@ export function Canvas() {
   const handlePublish = async () => {
     const triggerNode = nodes.find((n) => n.id === "1");
 
-  if (!triggerNode || !triggerNode.data?.label) {
-    alert("Trigger not selected.");
-    return;
-  }
+    if (!triggerNode || !triggerNode.data?.label) {
+      alert("Trigger not selected.");
+      return;
+    }
 
-  // Extracting 'webhook' from '1. webhook'
-  const availableTriggerId = (triggerNode.data.label as string).split('. ')[1];
-  
+    // Extracting 'webhook' from '1. webhook'
+    const availableTriggerId = (triggerNode.data.label as string).split('. ')[1];
+
     const actions = nodes
-  .filter(n => n.id !== triggerNode.id)
-  .map(n => {
-    const availableActionId = (n.data.label as string)?.split(". ")[1] || "";
+      .filter(n => n.id !== triggerNode.id)
+      .map(n => {
+        const availableActionId = (n.data.label as string)?.split(". ")[1] || "";
 
-    return {
-      availableActionId,
-      sortingOrder: parseInt(n.id) - 1,
-      actionMetadata: n.data.metadata || {},
-    };
-  });
+        return {
+          availableActionId,
+          sortingOrder: parseInt(n.id) - 1,
+          actionMetadata: n.data.metadata || {},
+        };
+      });
 
     try {
       await axios.post(`${BACKEND_URL}/api/v1/zap/create`, {
         availableTriggerId: availableTriggerId,
         actions,
       },
-      {
-        headers: {
-          Authorization: localStorage.getItem("token") || "", // no Bearer prefix
-        },
-      }
+        {
+          headers: {
+            Authorization: localStorage.getItem("token") || "", // no Bearer prefix
+          },
+        }
 
-    );
+      );
 
       alert("Zap Created!");
+      router.push("/dashboard");
     } catch (err) {
       alert("Failed to publish zap.");
     }
@@ -298,19 +279,11 @@ export function Canvas() {
 
 
   return (
-    <div className="bg-gray-100" style={{ width: "100%", height: '85vh' }}>
-      
-        
-        
+    <div className="bg-gray-100" style={{ width: "100%" }}>
 
-        <div className="flex justify-end items-center space-x-2 bg-[#fffdfa] w-full p-1">
-            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Undo</button>
-            <button className="text-sm px-3 py-1 hover:bg-gray-100 rounded border">Test run</button>
-            <Button onClick={handlePublish}>Publish</Button>
-        </div>
-        
-      
-      
+      <TopBar handlePublish={handlePublish} />
+
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -324,11 +297,11 @@ export function Canvas() {
       >
         <MiniMap />
         <Controls />
-        <Background color="black" bgColor="" gap={10} />
+        <Background color="black" bgColor="" gap={10} className="h-11/12" />
       </ReactFlow>
 
       <Modal show={openModal} onClose={() => setOpenModal(false)}>
-              
+
         <div className="bg-white p-5 rounded-2xl flex flex-col gap-5">
           <div className="flex justify-between">
             <h2 className="text-2xl font-semibold">Select</h2>
@@ -337,45 +310,45 @@ export function Canvas() {
 
           <div>
             {(nodeId == "1") ? <div className="flex flex-col gap-3 m-2">
-                {availableTriggers.map((trigger) => (
-                  <div onClick={() => {
-                    const node = getNode(nodeId);
-                    if(node != null) node.data.label =`${node.id}. ${trigger.name}`
-                    setOpenModal(false)
-                  }} className="flex gap-5 cursor-pointer h-5">
-                    <img className="w-5 h-5 object-contain"  src={`${trigger.image}`} alt="" />
-                    <span>{trigger.name}</span>
-                  </div>
-                )
-                
-                )}
+              {availableTriggers.map((trigger) => (
+                <div onClick={() => {
+                  const node = getNode(nodeId);
+                  if (node != null) node.data.label = `${node.id}. ${trigger.name}`
+                  setOpenModal(false)
+                }} className="flex gap-5 cursor-pointer h-5">
+                  <img className="w-5 h-5 object-contain" src={`${trigger.image}`} alt="" />
+                  <span>{trigger.name}</span>
+                </div>
+              )
 
-            </div>  :   <div className="flex flex-col gap-3 m-2">
+              )}
 
-                {availableActions.map((action)=>(
-                  <div onClick={() => {
-                    const node = getNode(nodeId);
-                    if(node != null) node.data.label =`${node.id}. ${action.name}`
-                    
-                    setOpenModal(false)
-                    setSelectedAction(action);      
-                    setSecondModal(true);           
+            </div> : <div className="flex flex-col gap-3 m-2">
 
-                  }} className="flex gap-5 cursor-pointer h-5">
+              {availableActions.map((action) => (
+                <div onClick={() => {
+                  const node = getNode(nodeId);
+                  if (node != null) node.data.label = `${node.id}. ${action.name}`
 
-                    <img className="w-5 h-5 object-contain" src={`${action.image}`} alt="" />
-                    <span>{action.name}</span>
+                  setOpenModal(false)
+                  setSelectedAction(action);
+                  setSecondModal(true);
 
-                  </div>
-                ))}
+                }} className="flex gap-5 cursor-pointer h-5">
+
+                  <img className="w-5 h-5 object-contain" src={`${action.image}`} alt="" />
+                  <span>{action.name}</span>
+
+                </div>
+              ))}
 
 
             </div>
             }
           </div>
         </div>
-        
-      </Modal>  
+
+      </Modal>
 
 
       <Modal show={openSecondModal} onClose={() => setSecondModal(false)}>
@@ -394,63 +367,63 @@ export function Canvas() {
           </div>
         </div>
       </Modal>
-        
+
     </div>
   );
 }
 
-const Input = ({label, placeholder, onChange, type = "text"}: {
-    label: string;
-    placeholder: string;
-    onChange: (e: any) => void;
-    type?: "text" | "password"
+const Input = ({ label, placeholder, onChange, type = "text" }: {
+  label: string;
+  placeholder: string;
+  onChange: (e: any) => void;
+  type?: "text" | "password"
 }) => {
-    return <div>
-        <div className="text-sm pb-1 pt-2">
-            * <label>{label}</label>
-        </div>
-        <input className="border rounded px-4 py-2 w-full border-black" type={type} placeholder={placeholder} onChange={onChange} />
+  return <div>
+    <div className="text-sm pb-1 pt-2">
+      * <label>{label}</label>
     </div>
+    <input className="border rounded px-4 py-2 w-full border-black" type={type} placeholder={placeholder} onChange={onChange} />
+  </div>
 }
 
-function EmailSelector({setMetadata}: {
-    setMetadata: (params: any) => void;
+function EmailSelector({ setMetadata }: {
+  setMetadata: (params: any) => void;
 }) {
-    const [email, setEmail] = useState("");
-    const [body, setBody] = useState("");
+  const [email, setEmail] = useState("");
+  const [body, setBody] = useState("");
 
-    return <div>
-        <Input label={"To"} type={"text"} placeholder="To" onChange={(e) => setEmail(e.target.value)}></Input>
-        <Input label={"Body"} type={"text"} placeholder="Body" onChange={(e) => setBody(e.target.value)}></Input>
-        <div className="pt-2">
-            <PrimaryButton onClick={() => {
-                setMetadata({
-                    email,
-                    body
-                })
-            }}>Submit</PrimaryButton>
-        </div>
+  return <div>
+    <Input label={"To"} type={"text"} placeholder="To" onChange={(e) => setEmail(e.target.value)}></Input>
+    <Input label={"Body"} type={"text"} placeholder="Body" onChange={(e) => setBody(e.target.value)}></Input>
+    <div className="pt-2">
+      <PrimaryButton onClick={() => {
+        setMetadata({
+          email,
+          body
+        })
+      }}>Submit</PrimaryButton>
     </div>
+  </div>
 }
 
-function SolanaSelector({setMetadata}: {
-    setMetadata: (params: any) => void;
+function SolanaSelector({ setMetadata }: {
+  setMetadata: (params: any) => void;
 }) {
-    const [amount, setAmount] = useState("");
-    const [address, setAddress] = useState("");    
+  const [amount, setAmount] = useState("");
+  const [address, setAddress] = useState("");
 
-    return <div>
-        <Input label={"To"} type={"text"} placeholder="To" onChange={(e) => setAddress(e.target.value)}></Input>
-        <Input label={"Amount"} type={"text"} placeholder="To" onChange={(e) => setAmount(e.target.value)}></Input>
-        <div className="pt-4">
-        <PrimaryButton onClick={() => {
-            setMetadata({
-                amount,
-                address
-            })
-        }}>Submit</PrimaryButton>
-        </div>
+  return <div>
+    <Input label={"To"} type={"text"} placeholder="To" onChange={(e) => setAddress(e.target.value)}></Input>
+    <Input label={"Amount"} type={"text"} placeholder="To" onChange={(e) => setAmount(e.target.value)}></Input>
+    <div className="pt-4">
+      <PrimaryButton onClick={() => {
+        setMetadata({
+          amount,
+          address
+        })
+      }}>Submit</PrimaryButton>
     </div>
+  </div>
 }
 
 
@@ -600,170 +573,170 @@ function GoogleCalendarSelector({
 
 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
-const RefreshCwIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>;
+const RefreshCwIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" /></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>;
 
 interface Sheet { id: string; name: string; }
 // interface SelectorProps { onSave: (metadata: any) => {} }
 
 interface CustomDropdownProps {
-    label: string;
-    placeholder: string;
-    options: string[];
-    onSelect: (value: string) => void;
-    selectedValue: string | null | undefined;
-    isLoading: boolean;
+  label: string;
+  placeholder: string;
+  options: string[];
+  onSelect: (value: string) => void;
+  selectedValue: string | null | undefined;
+  isLoading: boolean;
 }
 
 const CustomDropdown = ({ label, placeholder, options, onSelect, selectedValue, isLoading }: CustomDropdownProps) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const displayValue = selectedValue || placeholder;
+  const [isOpen, setIsOpen] = useState(false);
+  const displayValue = selectedValue || placeholder;
 
-    return (
-        <div className="relative mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label} *</label>
-            <button onClick={() => setIsOpen(!isOpen)} disabled={isLoading || !options.length} className="w-full flex justify-between items-center bg-white border border-gray-300 rounded-md px-3 py-2 text-left text-gray-800 disabled:bg-gray-100">
-                <span>{isLoading ? "Loading..." : displayValue}</span>
-                <ChevronDownIcon />
-            </button>
-            {isOpen && (
-                <div className="absolute z-10 top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-xl">
-                    <ul className="py-1 max-h-60 overflow-y-auto">
-                        {options.map((option: string) => (
-                            <li key={option} onClick={() => { onSelect(option); setIsOpen(false); }} className="px-4 py-2 text-sm text-gray-800 hover:bg-blue-50 cursor-pointer">{option}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+  return (
+    <div className="relative mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label} *</label>
+      <button onClick={() => setIsOpen(!isOpen)} disabled={isLoading || !options.length} className="w-full flex justify-between items-center bg-white border border-gray-300 rounded-md px-3 py-2 text-left text-gray-800 disabled:bg-gray-100">
+        <span>{isLoading ? "Loading..." : displayValue}</span>
+        <ChevronDownIcon />
+      </button>
+      {isOpen && (
+        <div className="absolute z-10 top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-xl">
+          <ul className="py-1 max-h-60 overflow-y-auto">
+            {options.map((option: string) => (
+              <li key={option} onClick={() => { onSelect(option); setIsOpen(false); }} className="px-4 py-2 text-sm text-gray-800 hover:bg-blue-50 cursor-pointer">{option}</li>
+            ))}
+          </ul>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 
 function GoogleSheetSelector({ setMetadata }: {
-  setMetadata: (params:any) => void;
+  setMetadata: (params: any) => void;
 }) {
-    const [spreadsheets, setSpreadsheets] = useState<Sheet[]>([]);
-    const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<Sheet | null>(null);
-    
-    const [worksheets, setWorksheets] = useState<string[]>([]);
-    const [selectedWorksheet, setSelectedWorksheet] = useState<string | null>(null);
+  const [spreadsheets, setSpreadsheets] = useState<Sheet[]>([]);
+  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<Sheet | null>(null);
 
-    const [columns, setColumns] = useState<string[]>([]);
-    const [columnValues, setColumnValues] = useState<Record<string, string>>({});
+  const [worksheets, setWorksheets] = useState<string[]>([]);
+  const [selectedWorksheet, setSelectedWorksheet] = useState<string | null>(null);
 
-    const [loading, setLoading] = useState({ spreadsheets: false, worksheets: false, columns: false });
+  const [columns, setColumns] = useState<string[]>([]);
+  const [columnValues, setColumnValues] = useState<Record<string, string>>({});
 
-    useEffect(() => {
-        setLoading(prev => ({ ...prev, spreadsheets: true }));
-        axios.get<any>('http://localhost:3000/api/v1/google/sheets', { headers: { "authorization": localStorage.getItem("token") } })
-            .then(res => setSpreadsheets(res.data.sheets))
-            .catch(err => console.error("Failed to fetch spreadsheets:", err))
-            .then(() => {
-                setLoading(prev => ({ ...prev, spreadsheets: false }));
-            });
-    }, []);
+  const [loading, setLoading] = useState({ spreadsheets: false, worksheets: false, columns: false });
 
-    useEffect(() => {
-        if (selectedSpreadsheet) {
-            setWorksheets([]);
-            setSelectedWorksheet(null);
-            setColumns([]);
-            setColumnValues({});
-            setLoading(prev => ({ ...prev, worksheets: true }));
-            axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets`, { headers: { "authorization": localStorage.getItem("token") } })
-                .then(res => setWorksheets(res.data.worksheets))
-                .catch(err => console.error("Failed to fetch worksheets:", err))
-                .then(() => {
-                    setLoading(prev => ({ ...prev, worksheets: false }));
-                });
-        }
-    }, [selectedSpreadsheet]);
+  useEffect(() => {
+    setLoading(prev => ({ ...prev, spreadsheets: true }));
+    axios.get<any>('http://localhost:3000/api/v1/google/sheets', { headers: { "authorization": localStorage.getItem("token") } })
+      .then(res => setSpreadsheets(res.data.sheets))
+      .catch(err => console.error("Failed to fetch spreadsheets:", err))
+      .then(() => {
+        setLoading(prev => ({ ...prev, spreadsheets: false }));
+      });
+  }, []);
 
-    useEffect(() => {
-        if (selectedSpreadsheet && selectedWorksheet) {
-            setColumns([]);
-            setColumnValues({});
-            setLoading(prev => ({ ...prev, columns: true }));
-            axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets/${encodeURIComponent(selectedWorksheet)}/columns`, { headers: { "authorization": localStorage.getItem("token") } })
-                .then(res => setColumns(res.data.columns))
-                .catch(err => console.error("Failed to fetch columns:", err))
-                .then(() => {
-                    setLoading(prev => ({ ...prev, columns: false }));
-                });
-        }
-    }, [selectedSpreadsheet, selectedWorksheet]);
+  useEffect(() => {
+    if (selectedSpreadsheet) {
+      setWorksheets([]);
+      setSelectedWorksheet(null);
+      setColumns([]);
+      setColumnValues({});
+      setLoading(prev => ({ ...prev, worksheets: true }));
+      axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets`, { headers: { "authorization": localStorage.getItem("token") } })
+        .then(res => setWorksheets(res.data.worksheets))
+        .catch(err => console.error("Failed to fetch worksheets:", err))
+        .then(() => {
+          setLoading(prev => ({ ...prev, worksheets: false }));
+        });
+    }
+  }, [selectedSpreadsheet]);
 
-    const handleColumnChange = (column: string, value: string) => {
-        setColumnValues(prev => ({ ...prev, [column]: value }));
-    };
+  useEffect(() => {
+    if (selectedSpreadsheet && selectedWorksheet) {
+      setColumns([]);
+      setColumnValues({});
+      setLoading(prev => ({ ...prev, columns: true }));
+      axios.get<any>(`http://localhost:3000/api/v1/google/sheets/${selectedSpreadsheet.id}/worksheets/${encodeURIComponent(selectedWorksheet)}/columns`, { headers: { "authorization": localStorage.getItem("token") } })
+        .then(res => setColumns(res.data.columns))
+        .catch(err => console.error("Failed to fetch columns:", err))
+        .then(() => {
+          setLoading(prev => ({ ...prev, columns: false }));
+        });
+    }
+  }, [selectedSpreadsheet, selectedWorksheet]);
 
-    const handleSave = () => {
-        // const metadata = {
-        //     spreadsheetId: selectedSpreadsheet?.id,
-        //     sheetName: selectedWorksheet,
-        //     values: columns.map(col => columnValues[col] || "")
-        // };
-        setMetadata({
-          spreadsheetId: selectedSpreadsheet?.id,
-          sheetName: selectedWorksheet,
-          values: columns.map(col => columnValues[col] || "")
-        })
-        alert("Configuration saved!");
-    };
+  const handleColumnChange = (column: string, value: string) => {
+    setColumnValues(prev => ({ ...prev, [column]: value }));
+  };
 
-    return (
-        <div className="p-4">
-            <CustomDropdown
-                label="Spreadsheet"
-                placeholder="Select a spreadsheet"
-                options={spreadsheets.map(s => s.name)}
-                selectedValue={selectedSpreadsheet?.name}
-                onSelect={(name: string) => setSelectedSpreadsheet(spreadsheets.find(s => s.name === name) || null)}
-                isLoading={loading.spreadsheets}
-            />
+  const handleSave = () => {
+    // const metadata = {
+    //     spreadsheetId: selectedSpreadsheet?.id,
+    //     sheetName: selectedWorksheet,
+    //     values: columns.map(col => columnValues[col] || "")
+    // };
+    setMetadata({
+      spreadsheetId: selectedSpreadsheet?.id,
+      sheetName: selectedWorksheet,
+      values: columns.map(col => columnValues[col] || "")
+    })
+    alert("Configuration saved!");
+  };
 
-            {selectedSpreadsheet && (
-                <CustomDropdown
-                    label="Worksheet"
-                    placeholder="Select a worksheet"
-                    options={worksheets}
-                    selectedValue={selectedWorksheet}
-                    onSelect={setSelectedWorksheet}
-                    isLoading={loading.worksheets}
+  return (
+    <div className="p-4">
+      <CustomDropdown
+        label="Spreadsheet"
+        placeholder="Select a spreadsheet"
+        options={spreadsheets.map(s => s.name)}
+        selectedValue={selectedSpreadsheet?.name}
+        onSelect={(name: string) => setSelectedSpreadsheet(spreadsheets.find(s => s.name === name) || null)}
+        isLoading={loading.spreadsheets}
+      />
+
+      {selectedSpreadsheet && (
+        <CustomDropdown
+          label="Worksheet"
+          placeholder="Select a worksheet"
+          options={worksheets}
+          selectedValue={selectedWorksheet}
+          onSelect={setSelectedWorksheet}
+          isLoading={loading.worksheets}
+        />
+      )}
+
+      {selectedWorksheet && loading.columns && <p className="text-sm text-gray-500">Loading columns...</p>}
+      {columns.length > 0 && (
+        <div className="mt-4 border-t pt-4">
+          <h4 className="font-semibold mb-2 text-gray-800">Map Columns</h4>
+          <div className="space-y-3">
+            {columns.map(col => (
+              <div key={col}>
+                <label className="block text-sm font-medium text-gray-700">{col}</label>
+                <input
+                  type="text"
+                  placeholder={`Value for ${col}`}
+                  onChange={(e) => handleColumnChange(col, e.target.value)}
+                  className="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
-            )}
-
-            {selectedWorksheet && loading.columns && <p className="text-sm text-gray-500">Loading columns...</p>}
-            {columns.length > 0 && (
-                <div className="mt-4 border-t pt-4">
-                    <h4 className="font-semibold mb-2 text-gray-800">Map Columns</h4>
-                    <div className="space-y-3">
-                        {columns.map(col => (
-                            <div key={col}>
-                                <label className="block text-sm font-medium text-gray-700">{col}</label>
-                                <input
-                                    type="text"
-                                    placeholder={`Value for ${col}`}
-                                    onChange={(e) => handleColumnChange(col, e.target.value)}
-                                    className="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-            
-            <div className="pt-4 mt-4 border-t">
-                <button
-                    onClick={handleSave}
-                    disabled={!selectedWorksheet || columns.length === 0}
-                    className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                    Save Configuration
-                </button>
-            </div>
+              </div>
+            ))}
+          </div>
         </div>
-    );
+      )}
+
+      <div className="pt-4 mt-4 border-t">
+        <button
+          onClick={handleSave}
+          disabled={!selectedWorksheet || columns.length === 0}
+          className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Save Configuration
+        </button>
+      </div>
+    </div>
+  );
 }
 

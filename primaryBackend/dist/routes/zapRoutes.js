@@ -85,6 +85,33 @@ zapRouter.get('/allzap', authMiddleware_1.authMiddleware, (req, res) => __awaite
     });
     console.log(zaps);
 }));
+zapRouter.get('/user', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        //@ts-ignore
+        const id = req.id; // assuming authMiddleware sets req.user
+        const zaps = yield prismaClient.zap.findMany({
+            where: { userId: id },
+            include: {
+                actions: {
+                    include: {
+                        type: true
+                    }
+                }, trigger: {
+                    include: {
+                        type: true
+                    }
+                }
+            }
+        }); // newest first
+        res.json({
+            zaps
+        });
+    }
+    catch (err) {
+        console.log('Error fetching user zaps:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}));
 zapRouter.get('/:zapId', authMiddleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //@ts-ignore
     const id = req.id;

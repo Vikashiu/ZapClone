@@ -1,37 +1,18 @@
-import { AiFillHome as HomeIcon } from "react-icons/ai";
-import { MdApps } from 'react-icons/md';
 
-export function TopBar() {
+import { Button } from "flowbite-react";
+import axios from "axios";
+const BACKEND_URL = process.env.NEXT_BACKEND_URL;
+export function TopBar({handlePublish} : {
+  handlePublish : () => void;
+}) {
 
-    return <div className="flex  w-screen bg-gray-900 text-white">
-        <div className="flex justfiy-center items-center p-3.5">
-            <button>
-                <HomeIcon size={24}/>
-            </button>
-        </div>
-       {/* Top Bar */}
-        <div className="flex w-full  items-center justify-between px-6 py-3 shadow-sm ">
+    return <div className="flex justify-end items-center space-x-2 bg-gray-900 w-full p-1 ">
+                <button className="text-sm px-3 py-1 hover:text-gray-500 hover:border-gray-500 text-white rounded border border-white">Undo</button>
+                <button onClick={async () => {
 
-            <button>
-                <MdApps size={24} />
-            </button>
+                  const res = axios.get(`${BACKEND_URL}/auth`)
 
-          {/* Breadcrumb + Zap name */}
-          <div className="flex items-center space-x-2 text-sm">
-
-            
-
-            <span className="">Vikash Sinha</span>
-            <span className="text-gray-400">/</span>
-            <span className="font-medium">Untitled Zap</span>
-            <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Draft</span>
-          </div>
-
-          
-          <div>
-            Help
-          </div>
-
-        </div>
-    </div>
+                }} className="text-sm px-3 py-1 hover:text-gray-500 hover:border-gray-500 text-white text-center rounded border border-white">Connect</button>
+                <Button onClick={handlePublish} className="mr-5">Publish</Button>
+            </div>
 }

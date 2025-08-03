@@ -13,10 +13,10 @@ export function SideBar() {
         setActivePanel((prev) => (prev === panelName ? null : panelName));
     }
 
-    return <div className="h-full">
+    return <div className="">
 
         {/* Sidebar */}
-      <div className="w-13 h-160 border-b-gray-900 bg-gray-900 text-white flex flex-col items-center space-y-6 py-3">
+      <div className="w-13 h-169  bg-gray-900 text-white flex flex-col items-center space-y-6 py-3">
         
         <button onClick={() => togglePanel("zap")} className="hover:text-yellow-400">
           <ZapIcon size={24} />

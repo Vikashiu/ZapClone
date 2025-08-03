@@ -29,7 +29,7 @@ export function LoginCard() {
       username: email,
       password,
     });
-    console.log(res.data.token)
+    console.log(res)
     localStorage.setItem("token", res.data.token );
     router.push("/dashboard");
   };

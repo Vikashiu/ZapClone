@@ -3,8 +3,10 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { InputField } from "@/component/Inputfield";
+import axios from "axios";
+import { BACKEND_URL } from "@/app/config";
 
-const BACKEND_URL = process.env.BACKEND_URL;
+
 
 
 export function SignupHeroSection(){

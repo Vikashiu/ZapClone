@@ -65,7 +65,7 @@
 // export default function() {
 //     const { loading, zaps } = useZaps();
 //     const router = useRouter();
-    
+
 //     return <div className="">
 
 
@@ -97,7 +97,7 @@
 //                 <div className="flex-1">Go</div>
 //         </div>
 //         {zaps.map(z => 
-        
+
 //         <div className="flex border-b border-t py-4">
 //             <div className="flex-1 flex"><img src={z.trigger.type.image} className="w-[30px] h-[30px]" /> {z.actions.map(x => <img src={x.type.image} className="w-[30px] h-[30px]" />)}</div>
 //             <div className="flex-1">{z.id}</div>
@@ -137,9 +137,9 @@ const CopyIcon = () => (
 
 const MagicWandIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
-        <path d="M9.5 2.5a1.5 1.5 0 0 1 3 0M6 2.5a1.5 1.5 0 0 1 3 0M2.5 6a1.5 1.5 0 0 1 0 3M2.5 15a1.5 1.5 0 0 1 0 3M6 21.5a1.5 1.5 0 0 1 3 0M15 21.5a1.5 1.5 0 0 1 3 0M21.5 15a1.5 1.5 0 0 1 0 3M21.5 6a1.5 1.5 0 0 1 0 3M15 2.5a1.5 1.5 0 0 1 3 0M11 12c0 2.5-2 4.5-4.5 4.5S2 14.5 2 12s2-4.5 4.5-4.5S11 9.5 11 12z"/>
-        <path d="m13 12 8.5 8.5"/>
-        <path d="m13 12-8.5 8.5"/>
+        <path d="M9.5 2.5a1.5 1.5 0 0 1 3 0M6 2.5a1.5 1.5 0 0 1 3 0M2.5 6a1.5 1.5 0 0 1 0 3M2.5 15a1.5 1.5 0 0 1 0 3M6 21.5a1.5 1.5 0 0 1 3 0M15 21.5a1.5 1.5 0 0 1 3 0M21.5 15a1.5 1.5 0 0 1 0 3M21.5 6a1.5 1.5 0 0 1 0 3M15 2.5a1.5 1.5 0 0 1 3 0M11 12c0 2.5-2 4.5-4.5 4.5S2 14.5 2 12s2-4.5 4.5-4.5S11 9.5 11 12z" />
+        <path d="m13 12 8.5 8.5" />
+        <path d="m13 12-8.5 8.5" />
     </svg>
 );
 
@@ -147,37 +147,37 @@ const MagicWandIcon = () => (
 // --- Type Definitions ---
 
 type Zap = {
-  id: string;
-  name?: string; // Optional user-defined name
-  TriggerId: string;
-  userId: number;
-  createdAt: string;
-  actions: {
     id: string;
-    zapId: string;
-    ActionId: string;
-    metadata: Record<string, any>;
-    type: {
-      id: string;
-      name: string;
-      image: string;
-    };
-  }[];
-  trigger: {
-    id: string;
-    zapId: string;
+    name?: string; // Optional user-defined name
     TriggerId: string;
-    metadata: Record<string, any>;
-    type: {
-      id: string;
-      name: string;
-      image: string;
+    userId: number;
+    createdAt: string;
+    actions: {
+        id: string;
+        zapId: string;
+        ActionId: string;
+        metadata: Record<string, any>;
+        type: {
+            id: string;
+            name: string;
+            image: string;
+        };
+    }[];
+    trigger: {
+        id: string;
+        zapId: string;
+        TriggerId: string;
+        metadata: Record<string, any>;
+        type: {
+            id: string;
+            name: string;
+            image: string;
+        };
     };
-  };
 };
 
 type GetAllZapResponse = {
-  zaps: Zap[];
+    zaps: Zap[];
 };
 
 // --- Custom Hook for Data Fetching ---
@@ -187,19 +187,33 @@ function useZaps() {
     const [zaps, setZaps] = useState<Zap[]>([]);
 
     useEffect(() => {
-        axios.get<GetAllZapResponse>(`${BACKEND_URL}/api/v1/zap/allzap`, {
-            headers: {
-                "authorization": localStorage.getItem("token")
-            }
-        })
-        .then(res => {
+        const fetchZaps = async () => {
+            const res = await axios.get<GetAllZapResponse>(`${BACKEND_URL}/api/v1/zap/user`, {
+                headers: {
+                    "authorization": localStorage.getItem("token")
+                }
+            })
+            console.log(res);
             setZaps(res.data.zaps);
             setLoading(false);
-        })
-        .catch(err => {
-            console.error("Failed to fetch zaps:", err);
-            setLoading(false);
-        });
+        }
+
+        fetchZaps();
+        // const res = axios.get<GetAllZapResponse>(`${BACKEND_URL}/api/v1/zap/user`, {
+        //     headers: {
+        //         "authorization": localStorage.getItem("token")
+        //     }
+        // })
+
+        // console.log(res);
+        // .then(res => {
+        //     setZaps(res.data.zaps);
+        //     setLoading(false);
+        // })
+        // .catch(err => {
+        //     console.error("Failed to fetch zaps:", err);
+        //     setLoading(false);
+        // });
     }, []);
 
     return { loading, zaps, setZaps };
@@ -210,7 +224,7 @@ function useZaps() {
 export default function DashboardPage() {
     const { loading, zaps, setZaps } = useZaps();
     const router = useRouter();
-    
+
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -218,14 +232,14 @@ export default function DashboardPage() {
                     <h1 className="text-3xl font-bold text-gray-800">
                         My Zaps
                     </h1>
-                    <button 
+                    <button
                         onClick={() => router.push("/editor")}
                         className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
                     >
                         Create Zap
                     </button>
                 </div>
-                
+
                 {loading ? <SkeletonLoader /> : <ZapTable zaps={zaps} setZaps={setZaps} />}
             </div>
         </div>
@@ -302,7 +316,10 @@ function ZapTableRow({ zap, setZaps }: { zap: Zap, setZaps: React.Dispatch<React
 
 function ZapNameDisplay({ zap, setZaps }: { zap: Zap, setZaps: React.Dispatch<React.SetStateAction<Zap[]>> }) {
     const [isGenerating, setIsGenerating] = useState(false);
-    const defaultName = `${zap.trigger.type.name} → ${zap.actions.map(a => a.type.name).join(', ')}`;
+    const defaultName = `${zap?.trigger?.type?.name ?? "Unknown Trigger"} → ${Array.isArray(zap?.actions)
+        ? zap.actions.map(a => a?.type?.name ?? "Unknown Action").join(', ')
+        : "No Actions"
+        }`;
 
     const handleSuggestName = async () => {
         setIsGenerating(true);
@@ -318,21 +335,21 @@ function ZapNameDisplay({ zap, setZaps }: { zap: Zap, setZaps: React.Dispatch<Re
         try {
             const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
             const payload = { contents: chatHistory };
-            const apiKey = ""; // API key will be injected by the environment
+            const apiKey = "AIzaSyDU6CuVCFQDjQfdujGwpJHew4KtADxX_Gk"; // API key will be injected by the environment
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            
+
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            
+
             if (!response.ok) {
                 throw new Error(`API request failed with status ${response.status}`);
             }
 
             const result = await response.json();
-            
+
             if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
                 const newName = result.candidates[0].content.parts[0].text.trim().replace(/"/g, ''); // Clean up the name
 
@@ -340,7 +357,7 @@ function ZapNameDisplay({ zap, setZaps }: { zap: Zap, setZaps: React.Dispatch<Re
                 // In a real app, you would now save this name to your database.
                 // Example:
                 // await axios.put(`${BACKEND_URL}/api/v1/zap/${zap.id}`, { name: newName });
-                
+
                 // For now, we update the local state to show the change instantly.
                 setZaps(prevZaps => prevZaps.map(z => z.id === zap.id ? { ...z, name: newName } : z));
             } else {
@@ -358,22 +375,28 @@ function ZapNameDisplay({ zap, setZaps }: { zap: Zap, setZaps: React.Dispatch<Re
     return (
         <div className="flex items-center">
             <div className="flex -space-x-2">
-                <img src={zap.trigger.type.image} alt={zap.trigger.type.name} className="w-8 h-8 rounded-full border-2 border-white" />
-                {zap.actions.map(action => (
-                    <img key={action.id} src={action.type.image} alt={action.type.name} className="w-8 h-8 rounded-full border-2 border-white" />
+                <img className="w-8 h-8 rounded-full border-2 border-white" src={zap.trigger?.type?.image ?? ""} alt={zap.trigger?.type?.name ?? "Trigger"} />
+                {Array.isArray(zap.actions) && zap.actions.map(action => (
+                    <img
+                        key={action.id}
+                        src={action?.type?.image ?? ""}
+                        alt={action?.type?.name ?? "Action"}
+                        className="w-8 h-8 rounded-full border-2 border-white"
+                    />
                 ))}
+
             </div>
             <div className="ml-4 font-medium text-gray-900">
                 {zap.name || defaultName}
             </div>
-            <button 
-                onClick={handleSuggestName} 
+            <button
+                onClick={handleSuggestName}
                 disabled={isGenerating}
                 className="ml-3 p-1 rounded-full hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Suggest a name with AI"
             >
-                {isGenerating ? 
-                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div> : 
+                {isGenerating ?
+                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div> :
                     <MagicWandIcon />
                 }
             </button>
@@ -407,7 +430,7 @@ const EmptyState = () => (
         <h3 className="text-xl font-semibold text-gray-800">No Zaps Yet!</h3>
         <p className="mt-2 text-gray-500">It looks like you haven't created any Zaps. Get started by automating your first workflow.</p>
         <div className="mt-6">
-            <button 
+            <button
                 onClick={() => (window.location.href = "/editor")}
                 className="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
             >
