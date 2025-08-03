@@ -44,7 +44,7 @@ app.get("/auth", (req, res) => {
 
     ],
   });
-  res.redirect(url);
+  res.json({url});
 });
 
 app.get("/oauth2callback", async (req, res) => {
