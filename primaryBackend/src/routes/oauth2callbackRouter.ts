@@ -40,8 +40,8 @@ app.get("/", authMiddleware ,async (req, res) => {
       },
     });
     console.log("✅ Credentials saved for user:", userId);
-    
-    res.send("OAuth complete. Webhook registered. Check console.");
+    res.redirect("http://localhost:3001/editor");
+    // res.send("OAuth complete. Webhook registered. Check console.");
     } catch (error) {
       console.log("❌ Error in OAuth callback:", error);
       res.status(500).send("Authentication failed.");
