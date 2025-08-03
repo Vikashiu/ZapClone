@@ -16,7 +16,7 @@ app.get("/", async (req, res) => {
   const { code } = req.query;
   const userId ="1";
   const zapId = "";
-  console.log(code);
+  // console.log(code);
 
   try {
     const { tokens } = await oauth2Client.getToken(code);

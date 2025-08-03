@@ -1,10 +1,4 @@
 "use strict";
-// import { google } from "googleapis";
-// import { PrismaClient } from "@prisma/client";
-// import { Router } from "express";
-// import { authMiddleware } from "../authMiddleware";
-// const app = Router();
-// const prismaClient = new PrismaClient();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -18,61 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.googleApiRoute = void 0;
 exports.getWorksheets = getWorksheets;
 exports.getSheetColumns = getSheetColumns;
-// interface GoogleSheet {
-//     id: string;
-//     name: string;
-// }
-// app.get('/sheets', authMiddleware,async (req , res) => {
-//     //@ts-ignore
-//     const userId =  "1";
-//     const creds = await prismaClient.googleCredentials.findFirst({ where: { userId } });
-//     if (!creds || !creds.accessToken || !creds.refreshToken) {
-//         throw new Error(`No valid Google credentials found for user ID: ${userId}.`);
-//     }
-//     const oauth2Client = new google.auth.OAuth2(
-//         process.env.CLIENT_ID,
-//         process.env.CLIENT_SECRET,
-//         process.env.REDIRECT_URI
-//     );
-//     oauth2Client.setCredentials({
-//         access_token: creds.accessToken,
-//         refresh_token: creds.refreshToken,
-//     });
-//     oauth2Client.on('tokens', async (tokens) => {
-//         if (tokens.access_token) {
-//             console.log('Access token was refreshed for fetching sheets.');
-//             await prismaClient.googleCredentials.update({
-//                 where: { userId: userId },
-//                 data: { accessToken: tokens.access_token },
-//             });
-//         }
-//     });
-//     const drive = google.drive({ version: 'v3', auth: oauth2Client });
-//     try {
-//         const response = await drive.files.list({
-//             q: "mimeType='application/vnd.google-apps.spreadsheet'",
-//             fields: 'files(id, name)',
-//             pageSize: 100, // Adjust as needed
-//         });
-//         console.log("checkpoint 1");
-//         const files = response.data.files;
-//         if (files && files.length) {
-//             console.log(`Found ${files.length} spreadsheets.`);
-//             const sheets = files.map(file => ({
-//                 id: file.id || '',
-//                 name: file.name || 'Untitled Spreadsheet'
-//             }));
-//             res.json({ sheets });
-//         } else {
-//             console.log('No spreadsheets found.');
-//             res.json({ sheets: [] });
-//         }
-//     } catch (error: any) {
-//         console.error("Error fetching Google Sheets:", error.response?.data || error.message);
-//         res.status(500).json({ message: "Failed to fetch Google Sheets." });
-//     }
-// });
-// export const googleApiRoute = app;
 const express_1 = require("express");
 const authMiddleware_1 = require("../authMiddleware");
 // Assuming the functions from the 'google-sheets-api-expansion' artifact are in this path
