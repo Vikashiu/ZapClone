@@ -42,7 +42,7 @@ app.get("/" ,async (req, res) => {
       },
     });
     console.log("✅ Credentials saved for user:", userId);
-    res.redirect("http://localhost:3001/editor");
+    res.redirect(`${process.env.REDIRECT_URI_TO_FRONTEND}/editor`);
     // res.send("OAuth complete. Webhook registered. Check console.");
     } catch (error) {
       console.log("❌ Error in OAuth callback:", error);
