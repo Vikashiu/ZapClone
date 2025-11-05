@@ -1,4 +1,8 @@
-// Prisma Schema with Indexing
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -12,11 +16,9 @@ datasource db {
 model User {
   id       Int    @id @default(autoincrement())
   name     String
-  email    String  @unique
+  email    String
   password String
   zaps     Zap[]
-
-  @@index([email])
 }
 
 model Zap {
@@ -27,20 +29,15 @@ model Zap {
   actions   Action[]
   zapRun    ZapRun[]
   user      User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([TriggerId])
 }
 
 model Trigger {
   id        String            @id @default(uuid())
   zapId     String            @unique
   TriggerId String
-  metadata  Json              @default("{}")
+  metadata     Json            @default("{}")
   type      AvailableTriggers @relation(fields: [TriggerId], references: [id])
   zap       Zap               @relation(fields: [zapId], references: [id])
-
-  @@index([TriggerId])
 }
 
 model AvailableTriggers {
@@ -48,8 +45,6 @@ model AvailableTriggers {
   name    String
   image   String
   trigger Trigger[]
-
-  @@index([name])
 }
 
 model Action {
@@ -60,10 +55,6 @@ model Action {
   actionId     String
   type         AvailableAction @relation(fields: [actionId], references: [id])
   sortingOrder Int             @default(0)
-
-  @@index([zapId])
-  @@index([actionId])
-  @@index([sortingOrder])
 }
 
 model AvailableAction {
@@ -71,8 +62,6 @@ model AvailableAction {
   name    String
   image   String
   actions Action[]
-
-  @@index([name])
 }
 
 model ZapRun {
@@ -81,16 +70,12 @@ model ZapRun {
   metadata     Json
   zap          Zap           @relation(fields: [zapId], references: [id])
   zapRunOutbox ZapRunOutbox?
-
-  @@index([zapId])
 }
 
 model ZapRunOutbox {
   id       String @id @default(uuid())
   zapRunId String @unique
   zapRun   ZapRun @relation(fields: [zapRunId], references: [id])
-
-  @@index([zapRunId])
 }
 
 model GoogleCredentials {
@@ -101,9 +86,6 @@ model GoogleCredentials {
   expiryDate   DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  @@index([userId])
-  @@index([expiryDate])
 }
 
 model NotionCredential {
@@ -115,7 +97,4 @@ model NotionCredential {
   userId         String   @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  @@index([userId])
-  @@index([workspaceId])
 }
