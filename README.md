@@ -143,3 +143,9 @@ npm run client
 initial architecture for workflow execution:
 <img width="825" height="577" alt="image" src="https://github.com/user-attachments/assets/b6eca08b-045a-4288-99af-2e65f97d0608" />
 
+
+<img width="956" height="531" alt="image" src="https://github.com/user-attachments/assets/aab1cd58-daee-476f-b6bf-1e4ca78b6ed2" />
+
+
+###final architecture
+<img width="982" height="488" alt="image" src="https://github.com/user-attachments/assets/1c40ac6b-b951-492f-a48a-1b421c678d0f" />
