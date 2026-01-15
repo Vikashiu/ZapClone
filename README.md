@@ -140,3 +140,6 @@ npm run worker
 # Run frontend
 npm run client
 ```
+
+<img width="825" height="577" alt="image" src="https://github.com/user-attachments/assets/b6eca08b-045a-4288-99af-2e65f97d0608" />
+
